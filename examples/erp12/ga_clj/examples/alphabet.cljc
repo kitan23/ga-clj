@@ -2,12 +2,11 @@
   (:gen-class)
   (:require [erp12.ga-clj.search.ga :as ga]
             [erp12.ga-clj.toolbox :as tb]
-            [erp12.ga-clj.plexicase :as plx]
-            )
-  )
+            [erp12.ga-clj.plexicase :as plx]))
 
 (def target
-  (vec "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+  #_(vec "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  (mapv char (range 200)))
 
 (def tournament
   (tb/make-tournament-selection {:by :error :size 7}))
@@ -29,7 +28,8 @@
                                 {:error (tb/hamming-distance gn target)
                                  :errors (map #(if (= %1 %2) 0 1) gn target)})
 
-             :post-eval  plx/make_plexicase_selection 
+             :post-eval  plx/make-plexicase-selection
+
              ;; To "breed" a new genome from the population, we:
              ;;   1. Select 2 parents with tournament selection.
              ;;   2. Pass their genomes to uniform-crossover.
@@ -60,4 +60,5 @@
 
 (comment
   (-main)
+
   )
