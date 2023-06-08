@@ -49,7 +49,6 @@
    A list of lists of unnormalized probabilities for each individual 
    "
 
-;;   [individuals num-cases option]
   [{:keys [individuals num-cases option] :or {option 1}}]
   (map
    (fn [y_i] (map
@@ -59,29 +58,6 @@
                                                  :option option}))
               (range num-cases)))
    (range (count individuals))))
-
-(defn sum_unnormalized_probabilities
-  "
-   Options:
-   individuals: a vector of individuals
-   j: the index of the case to calculate the probability for
-   "
-  [individuals j]
-   (reduce + (map #(unnormalized_probability individuals % j) (range (count individuals)))))
-
-(defn probability_distribution_2
-  "
-   Options: 
-   unnormalized_prob_distribution: a list of lists of unnormalized probabilities for each individual
-
-   Return: 
-   A list of lists of probabilities for each individual for each case
-
-   "
-  [unnormalized_prob_distribution]
-  (map (fn [indi_probs]
-         (let [sum (reduce + indi_probs)]
-           (map #(float (/ % sum)) indi_probs))) unnormalized_prob_distribution))
 
 (defn cases_probability_distribution
   [unnormalized_prob_distribution num_cases]
@@ -119,16 +95,10 @@
 
 (defn -main
   [& _]
-;;   (println (unnormalized_probability_distribution test-population 5))
+  (make_plexicase_selection {:individuals test-population :num-cases 5 :option 1})
   )
 
 
 (comment
-;;   (-main)
-;;   (def unnormalized_prob_test (unnormalized_probability_distribution {:individuals test-population :num-cases 5 :option 2})) 
-;;   (def cases_prob_dis (cases_probability_distribution unnormalized_prob_test 5))
-;;   (print cases_prob_dis)
-;;   (probability_distribution cases_prob_dis 5)
-
-  (make_plexicase_selection {:individuals test-population :num-cases 5 :option 1})
+(-main)
   )
