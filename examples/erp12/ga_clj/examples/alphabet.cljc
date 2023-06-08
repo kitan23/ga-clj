@@ -1,13 +1,20 @@
 (ns erp12.ga-clj.examples.alphabet
   (:gen-class)
   (:require [erp12.ga-clj.search.ga :as ga]
-            [erp12.ga-clj.toolbox :as tb]))
+            [erp12.ga-clj.toolbox :as tb]
+            [erp12.ga-clj.plexicase :as plx]
+            )
+  )
 
 (def target
   (vec "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
 
 (def tournament
   (tb/make-tournament-selection {:by :error :size 7}))
+
+(def lexicase-selection
+  (tb/make-lexicase-selection {:epsilon :num-errors})
+  )
 
 (defn -main
   "Evolves vector of letters in alphabetical order."
@@ -18,16 +25,23 @@
              ;; Individuals are a map containing a scalar `:error` for the genome.
              ;; In this case, we use the hamming distance.
              ;; The `:genome` is added implicitly.
-             :evaluator       (fn [gn _] {:error (tb/hamming-distance gn target)})
+             :evaluator       (fn [gn _]
+                                {:error (tb/hamming-distance gn target)
+                                 :errors (map #(if (= %1 %2) 0 1) gn target)})
+
+             :post-eval  plx/make_plexicase_selection 
              ;; To "breed" a new genome from the population, we:
              ;;   1. Select 2 parents with tournament selection.
              ;;   2. Pass their genomes to uniform-crossover.
              ;;   3. Mutate the resulting genome by swapping the position of 2 genes.
              :breed           (fn [{:keys [individuals]}]
-                                (->> (repeatedly 2 #(tournament individuals))
+                                ;; (->> (repeatedly 2 #(tournament individuals))
+                                (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
+
                                      (map :genome)
                                      tb/uniform-crossover
                                      tb/swap-2-genes))
+
              ;; We compare individuals on the basis of the error values. Lower is better.
              :individual-cmp  (comparator #(< (:error %1) (:error %2)))
              ;; We stop evolution when either:
@@ -41,3 +55,9 @@
              ;; Each generation will contain 1000 individuals.
              :population-size 1000}))
   (shutdown-agents))
+
+
+
+(comment
+  (-main)
+  )
