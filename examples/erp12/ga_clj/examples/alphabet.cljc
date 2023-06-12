@@ -5,8 +5,8 @@
             [erp12.ga-clj.plexicase :as plx]))
 
 (def target
-  #_(vec "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-  (mapv char (range 200)))
+  (vec "ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+  ;; (mapv char (range 200)))
 
 (def tournament
   (tb/make-tournament-selection {:by :error :size 7}))
@@ -34,10 +34,10 @@
              ;;   1. Select 2 parents with tournament selection.
              ;;   2. Pass their genomes to uniform-crossover.
              ;;   3. Mutate the resulting genome by swapping the position of 2 genes.
-             :breed           (fn [{:keys [individuals]}]
+             :breed           (fn [{:keys [individuals probability-distribution]}]
                                 ;; (->> (repeatedly 2 #(tournament individuals))
-                                (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
-
+                                ;;  (->>(repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
+                                 (->>(plx/select-parents-from-distribution individuals probability-distribution) 
                                      (map :genome)
                                      tb/uniform-crossover
                                      tb/swap-2-genes))

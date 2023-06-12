@@ -65,6 +65,7 @@
         dev (map #(math/abs (- % med)) arr)]
     (median dev)))
 
+
 ;; Selection
 
 (defn make-tournament-selection
@@ -293,7 +294,9 @@
   [genomes]
   (loop [child-gn []
          idx 0]
-    (let [gene (nth (rand-nth genomes) idx nil)]
+    (let [gene (nth (rand-nth genomes) idx nil)
+          ;; _ (println "gens" genomes)
+          ]
       (if (nil? gene)
         child-gn
         (recur (conj child-gn gene)

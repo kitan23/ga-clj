@@ -1,5 +1,9 @@
 (ns erp12.ga-clj.plexicase
-  (:require [erp12.ga-clj.toolbox :as tools]))
+  (:require [erp12.ga-clj.toolbox :as tools])
+  (:require (bigml.sampling [simple :as simple]
+                                  [reservoir :as reservoir]
+                                  [stream :as stream]))
+  )
 
 "TODO
  - check if its plexicase calculations that are slow - yes, 3-8 sec, when errors get to be mostly 0s, it's slower on the order of 15-20 seconds
@@ -74,10 +78,21 @@
         normalized-prob-dist (normalize-probability-distribution unnormalized-prob-dist)
         ind-probabilities (doall (probability-distribution normalized-prob-dist)) ;; TODO: Remove the doall after testing
         end-time (System/currentTimeMillis)]
-    (println \newline "ms taken during plexicase:" (- end-time start-time) \newline)
-    ;; (println "Individual probabilities:" ind-probabilities) ;; TODO: eventually replace this with whatever we need to do to return the state with the probabilities set 
-    nil))
+   ;;  (println \newline "ms taken during plexicase:" (- end-time start-time) \newline)
+   ;;  (println "Individual probabilities:" (count ind-probabilities))
+    ;; TODO: eventually replace this with whatever we need to do to return the state with the probabilities set 
+    {
+     :probability-distribution ind-probabilities
+    }
+    ))
 
+(defn select-parents-from-distribution 
+  [individuals probability-distribution]
+   (map #(nth individuals %) (take 2 (simple/sample (range (count individuals))
+                        :weigh (fn [indi] (nth probability-distribution indi))
+                      :replace true
+                        ))) 
+  )
 
 (def test-population
   '({:errors (10 5 5 15 10)}
@@ -100,9 +115,18 @@
 
 (comment
 
-  (replace {1 6} [0 1 0 1 1 0 1])
+  (-main test-population :option 2)
 
-  (larger-test-population 200 20)
+  (take 5 (simple/sample [:heads :tails]
+                         :weigh {:heads 0.5 :tails 0.5}
+                         :replace true))
 
-  (time (-main (larger-test-population 1000 26) :option 2))
-  )
+  (def test-probability-distribution (-main test-population :option 2))
+  (print test-probability-distribution)
+  (def indices [1 2 3 4 5])
+
+  (take 2 (simple/sample indices
+                         :weigh (fn [indi] (nth test-probability-distribution (- indi 1)))
+                        ;;  :replace true
+                         ))
+  )  
