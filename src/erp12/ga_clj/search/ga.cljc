@@ -85,10 +85,8 @@
                      :post-eval post-eval
                      :mapper    mapper})]
     (loop [state (init-state opts)
-           best-seen nil
-           prev-time (System/currentTimeMillis)]
+           best-seen nil]
       (println (last (:individuals state)))
-      (println \newline "ms to make next generation, including selection and variation:" (- (System/currentTimeMillis) prev-time))
       (let [state' (eval-generation state opts)
             ;; @todo Is there anyway to make this less expensive?
             new-best (u/min-by-cmp individual-cmp
@@ -97,13 +95,11 @@
                                      (conj (:individuals state') best-seen)))
             result (stop-fn (assoc state'
                                    :best new-best
-                                   :new-best? (not= best-seen new-best)))
-            prev-time (System/currentTimeMillis)]
+                                   :new-best? (not= best-seen new-best)))]
         (if (some? result)
           {:step   (:step state')
            :result result
            :best   new-best}
           (recur (doall (next-generation state' opts))
-                 new-best
-                 prev-time))))))
+                 new-best))))))
 

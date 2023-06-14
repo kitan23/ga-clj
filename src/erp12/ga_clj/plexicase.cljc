@@ -68,13 +68,10 @@
                option 1: original plexicase
                option 2: uses 1 instead of E(yi) in the calculation of hj"
   [{:keys [individuals option] :or {option 1}}]
-  (let [start-time (System/currentTimeMillis)
-        num-cases (count (:errors (first individuals)))
+  (let [num-cases (count (:errors (first individuals)))
         unnormalized-prob-dist (unnormalized-probability-distribution {:individuals individuals :num-cases num-cases :option option})
         normalized-prob-dist (normalize-probability-distribution unnormalized-prob-dist)
-        ind-probabilities (doall (probability-distribution normalized-prob-dist)) ;; TODO: Remove the doall after testing
-        end-time (System/currentTimeMillis)]
-    (println \newline "ms taken during plexicase:" (- end-time start-time) \newline)
+        ind-probabilities (probability-distribution normalized-prob-dist)]
     ;; (println "Individual probabilities:" ind-probabilities) ;; TODO: eventually replace this with whatever we need to do to return the state with the probabilities set 
     nil))
 
