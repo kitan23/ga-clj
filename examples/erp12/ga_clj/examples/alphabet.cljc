@@ -13,8 +13,7 @@
   (tb/make-tournament-selection {:by :error :size 7}))
 
 (def lexicase-selection
-  (tb/make-lexicase-selection {:epsilon :num-errors})
-  )
+  (tb/make-lexicase-selection {:epsilon :num-errors}))
 
 (defn -main
   "Evolves vector of letters in alphabetical order."
@@ -23,6 +22,7 @@
    (let [pop-size 1000]
      (ga/run {;; Generates random genomes as a permutation of the target genome.
               :genome-factory  #(shuffle target)
+
              ;; Individuals are a map containing a scalar `:error` for the genome.
              ;; In this case, we use the hamming distance.
              ;; The `:genome` is added implicitly.
@@ -54,7 +54,7 @@
               :stop-fn         (fn [{:keys [step best]}]
                                  (println "Step:" step "\tBest:" best)
                                  (cond
-                                   (<= (:error best) 150) :solution-found
+                                   (<= (:error best) 100) :solution-found
                                    (= step 300) :max-step-reached))
               
              ;; Each generation will contain 1000 individuals.
@@ -68,7 +68,7 @@
 
 (comment
 
-  
+
   (do
     (prof/profile (time (-main)))
     (prof/serve-ui 8080))

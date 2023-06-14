@@ -51,17 +51,17 @@
 (defn normalize-probability-distribution
   "Calculates the Pj(yi) values for every case and every individual."
   [unnormalized-prob-distribution]
-  (let [row-sums (doall (map #(reduce + %) (apply map list unnormalized-prob-distribution)))]
-    (doall (map (fn [hj-vector]
-                  (doall (map (fn nested-normalize-prob-dist-anon [hj row-sum] (float (/ hj row-sum)))
-                              hj-vector
-                              row-sums)))
-                unnormalized-prob-distribution))))
+  (let [row-sums (map #(reduce + %) (apply map list unnormalized-prob-distribution))]
+    (map (fn [hj-vector]
+           (map (fn nested-normalize-prob-dist-anon [hj row-sum] (float (/ hj row-sum)))
+                hj-vector
+                row-sums))
+         unnormalized-prob-distribution)))
 
 (defn probability-distribution
   "Calculates P(yi) = the final probability for each individual."
   [normalized-prob-dist]
-  (mapv tools/mean (doall normalized-prob-dist)))
+  (mapv tools/mean normalized-prob-dist))
 
 (defn plexicase-select-all-parents
   "Selects all parents for the generation. This is done here instead of one
@@ -83,9 +83,9 @@
                option 2: uses 1 instead of E(yi) in the calculation of hj"
   [num-parents {:keys [individuals option] :or {option 1}}]
   (let [num-cases (count (:errors (first individuals)))
-        unnormalized-prob-dist (doall (unnormalized-probability-distribution {:individuals individuals :num-cases num-cases :option option}))
-        normalized-prob-dist (doall (normalize-probability-distribution unnormalized-prob-dist))
-        ind-probabilities (doall (probability-distribution normalized-prob-dist))]
+        unnormalized-prob-dist (unnormalized-probability-distribution {:individuals individuals :num-cases num-cases :option option})
+        normalized-prob-dist (normalize-probability-distribution unnormalized-prob-dist)
+        ind-probabilities (probability-distribution normalized-prob-dist)]
     {:plexicase-parents (plexicase-select-all-parents individuals ind-probabilities num-parents)}))
 
 (defn plexicase-select-parent-using-index

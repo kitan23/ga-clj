@@ -100,6 +100,6 @@
           {:step   (:step state')
            :result result
            :best   new-best}
-          (recur (doall (next-generation state' opts))
+          (recur (next-generation state' opts)
                  new-best))))))
 
