@@ -94,8 +94,8 @@
                                      (:individuals state')
                                      (conj (:individuals state') best-seen)))
             result (stop-fn (assoc state'
-                                   :best new-best
-                                   :new-best? (not= best-seen new-best)))]
+                              :best new-best
+                              :new-best? (not= best-seen new-best)))]
         (if (some? result)
           {:step   (:step state')
            :result result

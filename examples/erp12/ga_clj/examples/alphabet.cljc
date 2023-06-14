@@ -35,13 +35,13 @@
              ;;   1. Select 2 parents with tournament selection.
              ;;   2. Pass their genomes to uniform-crossover.
              ;;   3. Mutate the resulting genome by swapping the position of 2 genes.
-            :breed           (fn [{:keys [individuals]}]
+             :breed           (fn [{:keys [individuals probability-distribution]}]
                                 ;; (->> (repeatedly 2 #(tournament individuals))
-                               (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
-
-                                    (map :genome)
-                                    tb/uniform-crossover
-                                    tb/swap-2-genes))
+                                ;;  (->>(repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
+                                 (->>(plx/select-parents-from-distribution individuals probability-distribution) 
+                                     (map :genome)
+                                     tb/uniform-crossover
+                                     tb/swap-2-genes))
 
              ;; We compare individuals on the basis of the error values. Lower is better.
             :individual-cmp  (comparator #(< (:error %1) (:error %2)))
