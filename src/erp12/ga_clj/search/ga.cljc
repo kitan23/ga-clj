@@ -20,7 +20,8 @@
 (defn- next-generation
   [{:keys [step] :as state} {:keys [breed population-size mapper]}]
   {:step    (inc step)
-   :genomes (mapper (fn [_] (breed state)) (range population-size))})
+   :genomes (mapper (fn [index] (breed (assoc state :index index)))
+                    (range population-size))})
 
 (defn run
   "Run a generational genetic algorithm.
@@ -86,7 +87,6 @@
                      :mapper    mapper})]
     (loop [state (init-state opts)
            best-seen nil]
-      (println (last (:individuals state)))
       (let [state' (eval-generation state opts)
             ;; @todo Is there anyway to make this less expensive?
             new-best (u/min-by-cmp individual-cmp

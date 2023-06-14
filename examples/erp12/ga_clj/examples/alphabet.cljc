@@ -20,49 +20,57 @@
   "Evolves vector of letters in alphabetical order."
   [& _]
   (println
-   (ga/run {;; Generates random genomes as a permutation of the target genome.
-            :genome-factory  #(shuffle target)
+   (let [pop-size 1000]
+     (ga/run {;; Generates random genomes as a permutation of the target genome.
+              :genome-factory  #(shuffle target)
              ;; Individuals are a map containing a scalar `:error` for the genome.
              ;; In this case, we use the hamming distance.
              ;; The `:genome` is added implicitly.
-            :evaluator       (fn [gn _]
-                               {:error (tb/hamming-distance gn target)
-                                :errors (map #(if (= %1 %2) 0 1) gn target)})
-
-            :post-eval  plx/make-plexicase-selection
+              :evaluator       (fn [gn _]
+                                 (let [errors (mapv #(if (= %1 %2) 0 1) gn target)]
+                                   {:error (apply + errors)
+                                    :errors errors}))
+              
+              :post-eval  (partial plx/make-plexicase-selection (* 2 pop-size))
 
              ;; To "breed" a new genome from the population, we:
              ;;   1. Select 2 parents with tournament selection.
              ;;   2. Pass their genomes to uniform-crossover.
              ;;   3. Mutate the resulting genome by swapping the position of 2 genes.
-             :breed           (fn [{:keys [individuals probability-distribution]}]
+              :breed           (fn [{:keys [plexicase-parents index]}]
                                 ;; (->> (repeatedly 2 #(tournament individuals))
-                                ;;  (->>(repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
-                                 (->>(plx/select-parents-from-distribution individuals probability-distribution) 
-                                     (map :genome)
-                                     tb/uniform-crossover
-                                     tb/swap-2-genes))
+                                ;;  (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
+                                 (->> (plx/plexicase-select-parent-using-index plexicase-parents index 2)
+                                      (mapv :genome)
+                                      tb/uniform-crossover
+                                      tb/swap-2-genes))
 
              ;; We compare individuals on the basis of the error values. Lower is better.
-            :individual-cmp  (comparator #(< (:error %1) (:error %2)))
+              :individual-cmp  (comparator #(< (:error %1) (:error %2)))
+
              ;; We stop evolution when either:
              ;;   1. We find an individual with zero error or
-             ;;   2. We reach 300 generations.
-            :stop-fn         (fn [{:keys [step best]}]
-                               (println "Step:" step "\tBest:" best)
-                               (cond
-                                 (= (:error best) 0) :solution-found
-                                 (= step 300) :max-step-reached))
+             ;;   2. We reach 300 generations. 
+              :stop-fn         (fn [{:keys [step best]}]
+                                 (println "Step:" step "\tBest:" best)
+                                 (cond
+                                   (<= (:error best) 150) :solution-found
+                                   (= step 300) :max-step-reached))
+              
              ;; Each generation will contain 1000 individuals.
-            :population-size 1000}))
-  (shutdown-agents))
+              :population-size pop-size
+              
+              ;:mapper map
+              })))
+  #_(shutdown-agents))
 
 
 
 (comment
 
-  (prof/profile (-main))
-
-  (prof/serve-ui 8080)
+  
+  (do
+    (prof/profile (time (-main)))
+    (prof/serve-ui 8080))
 
   )

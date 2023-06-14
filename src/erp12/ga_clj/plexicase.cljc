@@ -51,17 +51,27 @@
 (defn normalize-probability-distribution
   "Calculates the Pj(yi) values for every case and every individual."
   [unnormalized-prob-distribution]
-  (let [row-sums (map #(reduce + %) (apply map list unnormalized-prob-distribution))]
-    (map (fn [hj-vector]
-           (map (fn [hj row-sum] (/ hj row-sum))
-                hj-vector
-                row-sums))
-         unnormalized-prob-distribution)))
+  (let [row-sums (doall (map #(reduce + %) (apply map list unnormalized-prob-distribution)))]
+    (doall (map (fn [hj-vector]
+                  (doall (map (fn nested-normalize-prob-dist-anon [hj row-sum] (float (/ hj row-sum)))
+                              hj-vector
+                              row-sums)))
+                unnormalized-prob-distribution))))
 
 (defn probability-distribution
   "Calculates P(yi) = the final probability for each individual."
   [normalized-prob-dist]
-  (map tools/mean normalized-prob-dist))
+  (mapv tools/mean (doall normalized-prob-dist)))
+
+(defn plexicase-select-all-parents
+  "Selects all parents for the generation. This is done here instead of one
+   parent at a time, because simple/sample is much faster that way."
+  [individuals probability-distribution number-parents]
+  (take number-parents
+        (map #(nth individuals %)
+             (simple/sample (range (count individuals))
+                            :weigh (fn [indi] (nth probability-distribution indi))
+                            :replace true))))
 
 (defn make-plexicase-selection
   "Calculates the selection probabilities for every individual in the population.
@@ -71,19 +81,28 @@
              to use:
                option 1: original plexicase
                option 2: uses 1 instead of E(yi) in the calculation of hj"
-  [{:keys [individuals option] :or {option 1}}]
+  [num-parents {:keys [individuals option] :or {option 1}}]
   (let [num-cases (count (:errors (first individuals)))
-        unnormalized-prob-dist (unnormalized-probability-distribution {:individuals individuals :num-cases num-cases :option option})
-        normalized-prob-dist (normalize-probability-distribution unnormalized-prob-dist)
-        ind-probabilities (probability-distribution normalized-prob-dist)]
-    {:probability-distribution ind-probabilities}))
+        unnormalized-prob-dist (doall (unnormalized-probability-distribution {:individuals individuals :num-cases num-cases :option option}))
+        normalized-prob-dist (doall (normalize-probability-distribution unnormalized-prob-dist))
+        ind-probabilities (doall (probability-distribution normalized-prob-dist))]
+    {:plexicase-parents (plexicase-select-all-parents individuals ind-probabilities num-parents)}))
 
-(defn select-parents-from-distribution
-  [individuals probability-distribution]
-  (map #(nth individuals %)
-       (take 2 (simple/sample (range (count individuals))
-                              :weigh (fn [indi] (nth probability-distribution indi))
-                              :replace true))))
+(defn plexicase-select-parent-using-index
+  "Uses plexicase to select a parent. Uses the parents already selected by
+   plexicase-select-all-parents"
+  [plexicase-parents index number-parents]
+  (take number-parents
+        (drop (* index number-parents)
+              plexicase-parents)))
+
+;; (defn select-parents-from-distribution
+;;   "Uses plexicase to select a parent."
+;;   [individuals probability-distribution number-parents]
+;;   (map #(nth individuals %)
+;;        (take number-parents (simple/sample (range (count individuals))
+;;                               :weigh (fn [indi] (nth probability-distribution indi))
+;;                               :replace true))))
 
 (def test-population
   '({:errors (10 5 5 15 10)}
