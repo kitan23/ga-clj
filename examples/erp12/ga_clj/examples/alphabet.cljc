@@ -40,7 +40,10 @@
               :breed           (fn [{:keys [plexicase-parents index]}]
                                 ;; (->> (repeatedly 2 #(tournament individuals))
                                 ;;  (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
-                                 (->> (plx/plexicase-select-parent-using-index plexicase-parents index 2)
+                                 (->> (plx/plexicase-select-parent-using-index
+                                       {:plexicase-parents plexicase-parents 
+                                        :index index 
+                                        :number-parents 2})
                                       (mapv :genome)
                                       tb/uniform-crossover
                                       tb/swap-2-genes))
@@ -67,8 +70,6 @@
 
 
 (comment
-
-
   (do
     (prof/profile (time (-main)))
     (prof/serve-ui 8080))

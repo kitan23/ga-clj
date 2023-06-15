@@ -81,8 +81,9 @@
              to use:
                option 1: original plexicase
                option 2: uses 1 instead of E(yi) in the calculation of hj"
-  [num-parents {:keys [individuals option] :or {option 1}}]
-  (let [num-cases (count (:errors (first individuals)))
+  [num-parents num-errors {:keys [individuals option] :or {option 1}}]
+  (let [;;   num-cases (count (:errors (first individuals)))
+        num-cases num-errors
         unnormalized-prob-dist (unnormalized-probability-distribution {:individuals individuals :num-cases num-cases :option option})
         normalized-prob-dist (normalize-probability-distribution unnormalized-prob-dist)
         ind-probabilities (probability-distribution normalized-prob-dist)]
@@ -91,10 +92,8 @@
 (defn plexicase-select-parent-using-index
   "Uses plexicase to select a parent. Uses the parents already selected by
    plexicase-select-all-parents"
-  [plexicase-parents index number-parents]
-  (take number-parents
-        (drop (* index number-parents)
-              plexicase-parents)))
+  [{:keys [plexicase-parents index]}]
+   (nth plexicase-parents index))
 
 ;; (defn select-parents-from-distribution
 ;;   "Uses plexicase to select a parent."
