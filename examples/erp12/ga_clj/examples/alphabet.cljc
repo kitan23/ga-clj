@@ -30,8 +30,8 @@
                                  (let [errors (mapv #(if (= %1 %2) 0 1) gn target)]
                                    {:error (apply + errors)
                                     :errors errors}))
-              
-              :post-eval  (partial plx/make-plexicase-selection (* 2 pop-size))
+
+              :post-eval  #(plx/make-plexicase-selection (* 2 pop-size) (assoc % :num-errors (count target)))
 
              ;; To "breed" a new genome from the population, we:
              ;;   1. Select 2 parents with tournament selection.
@@ -40,10 +40,9 @@
               :breed           (fn [{:keys [plexicase-parents index]}]
                                 ;; (->> (repeatedly 2 #(tournament individuals))
                                 ;;  (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
-                                 (->> (plx/plexicase-select-parent-using-index
-                                       {:plexicase-parents plexicase-parents 
-                                        :index index 
-                                        :number-parents 2})
+                                 (->> (repeatedly 2 #(plx/plexicase-select-parent-using-index
+                                                      {:plexicase-parents plexicase-parents
+                                                       :index index}))
                                       (mapv :genome)
                                       tb/uniform-crossover
                                       tb/swap-2-genes))
@@ -59,10 +58,10 @@
                                  (cond
                                    (<= (:error best) 100) :solution-found
                                    (= step 300) :max-step-reached))
-              
+
              ;; Each generation will contain 1000 individuals.
               :population-size pop-size
-              
+
               ;:mapper map
               })))
   #_(shutdown-agents))

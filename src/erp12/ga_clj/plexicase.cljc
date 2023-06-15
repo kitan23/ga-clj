@@ -81,7 +81,7 @@
              to use:
                option 1: original plexicase
                option 2: uses 1 instead of E(yi) in the calculation of hj"
-  [num-parents num-errors {:keys [individuals option] :or {option 1}}]
+  [num-parents {:keys [individuals option num-errors] :or {option 1}}]
   (let [;;   num-cases (count (:errors (first individuals)))
         num-cases num-errors
         unnormalized-prob-dist (unnormalized-probability-distribution {:individuals individuals :num-cases num-cases :option option})
