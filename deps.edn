@@ -1,5 +1,6 @@
 {:paths   ["src"]
- :deps    {kixi/stats {:mvn/version "0.5.4"}
+ :deps    {kixi/stats {:mvn/version "0.5.4"}            
+           com.taoensso/timbre              {:mvn/version "6.0.4"}
            com.clojure-goes-fast/clj-async-profiler {:mvn/version "1.0.4"}
            bigml/sampling {:mvn/version "3.2"}
            org.clojure/data.finger-tree {:mvn/version "0.0.3"}}

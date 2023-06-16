@@ -1,6 +1,8 @@
 (ns erp12.ga-clj.search.ga
   (:require [erp12.ga-clj.individual :as i]
-            [erp12.ga-clj.utils :as u]))
+            [erp12.ga-clj.utils :as u]
+            [taoensso.timbre :as log]
+            ))
 
 (defn- init-state
   [{:keys [genome-factory population-size mapper]}]
@@ -86,20 +88,36 @@
                      :post-eval post-eval
                      :mapper    mapper})]
     (loop [state (init-state opts)
-           best-seen nil]
-      (let [state' (eval-generation state opts)
+           best-seen nil
+           previous-time nil
+           current-time (. System (nanoTime))]
+      (let [_ (if (nil? previous-time)
+                nil
+                (log/info "GENERATION " (- (:step state) 1) " TIME " (str (/ (- current-time previous-time) 1e6) "ms")))
+
+            ;; _ (println "GENERATION " (:step state) " TIME " (str (/ (- current-time previous-time) 1e9) "s"))
+            state' (eval-generation state opts)
             ;; @todo Is there anyway to make this less expensive?
             new-best (u/min-by-cmp individual-cmp
                                    (if (nil? best-seen)
                                      (:individuals state')
                                      (conj (:individuals state') best-seen)))
             result (stop-fn (assoc state'
-                              :best new-best
-                              :new-best? (not= best-seen new-best)))]
+                                   :best new-best
+                                   :new-best? (not= best-seen new-best)))]
         (if (some? result)
           {:step   (:step state')
            :result result
            :best   new-best}
-          (recur (next-generation state' opts)
-                 new-best))))))
+          (let [
+                ;; Time next-generation function
+                start (. System (nanoTime))
+                next-state (next-generation state' opts)
+                end (. System (nanoTime))
+                _ (log/info "PARENT SELECTING TIME " (str (/ (- end start) 1e6) "ms"))
+                ]
+          (recur next-state
+                  new-best
+                  current-time
+                  (. System (nanoTime)))))))))
 

@@ -6,8 +6,8 @@
             [clj-async-profiler.core :as prof]))
 
 (def target
-  #_(vec "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-  (mapv char (map #(+ 32 %) (range 200))))
+  (vec "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+  #_(mapv char (map #(+ 32 %) (range 200))))
 
 (def tournament
   (tb/make-tournament-selection {:by :error :size 7}))
@@ -40,9 +40,17 @@
               :breed           (fn [{:keys [plexicase-parents index]}]
                                 ;; (->> (repeatedly 2 #(tournament individuals))
                                 ;;  (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
-                                 (->> (repeatedly 2 #(plx/plexicase-select-parent-using-index
-                                                      {:plexicase-parents plexicase-parents
-                                                       :index index}))
+                                 (->> 
+                                  ;; (repeatedly 2 #(plx/plexicase-select-parent-using-index
+                                  ;;                     {:plexicase-parents plexicase-parents
+                                  ;;                      :index index
+                                  ;;                      }))
+                                       (vector (plx/plexicase-select-parent-using-index
+                                                {:plexicase-parents plexicase-parents
+                                                 :index (* 2 index)})
+                                               (plx/plexicase-select-parent-using-index
+                                                {:plexicase-parents plexicase-parents
+                                                 :index (inc(* 2 index))}))
                                       (mapv :genome)
                                       tb/uniform-crossover
                                       tb/swap-2-genes))
@@ -56,7 +64,7 @@
               :stop-fn         (fn [{:keys [step best]}]
                                  (println "Step:" step "\tBest:" best)
                                  (cond
-                                   (<= (:error best) 100) :solution-found
+                                   (<= (:error best) 0) :solution-found
                                    (= step 300) :max-step-reached))
 
              ;; Each generation will contain 1000 individuals.
@@ -64,7 +72,7 @@
 
               ;:mapper map
               })))
-  #_(shutdown-agents))
+  (shutdown-agents))
 
 
 

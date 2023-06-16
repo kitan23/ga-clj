@@ -144,9 +144,9 @@
           epsilon-this-case (if (indexed? epsilon)
                               (nth epsilon the-case)
                               epsilon)
-          threshold (+ (reduce min (map get-error candidates)) epsilon-this-case)]
+          threshold (+ (reduce min (mapv get-error candidates)) epsilon-this-case)]
       (recur (assoc opts
-               :candidates (filter #(<= (get-error %) threshold) candidates)
+               :candidates (filterv #(<= (get-error %) threshold) candidates)
                :cases (rest cases))))))
 
 (defn make-lexicase-selection

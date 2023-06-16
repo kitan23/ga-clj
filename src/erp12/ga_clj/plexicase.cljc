@@ -21,7 +21,7 @@
 (defn calculate-hj-vector
   "Calculates the hj values for this individual."
   [individual min-error-per-case option]
-  (let [ind-elitist-vector (map calculate-elitist-on-case
+  (let [ind-elitist-vector (mapv calculate-elitist-on-case
                                 (:errors individual)
                                 min-error-per-case)]
     (case option
@@ -41,19 +41,19 @@
 
    Returns: 
    A list of lists of unnormalized probabilities for each individual"
-  [{:keys [individuals num-cases option] :or {option 1}}]
-  (let [min-error-per-case (map (fn [c] (reduce min (map #(nth (:errors %) c)
+  [{:keys [individuals num-cases option]}]
+  (let [min-error-per-case (mapv (fn [c] (reduce min (mapv #(nth (:errors %) c)
                                                          individuals)))
                                 (range num-cases))]
-    (map #(calculate-hj-vector % min-error-per-case option)
+    (mapv #(calculate-hj-vector % min-error-per-case option)
          individuals)))
      
 (defn normalize-probability-distribution
   "Calculates the Pj(yi) values for every case and every individual."
   [unnormalized-prob-distribution]
-  (let [row-sums (map #(reduce + %) (apply map list unnormalized-prob-distribution))]
-    (map (fn [hj-vector]
-           (map (fn nested-normalize-prob-dist-anon [hj row-sum] (float (/ hj row-sum)))
+  (let [row-sums (mapv #(reduce + %) (apply mapv list unnormalized-prob-distribution))]
+    (mapv (fn [hj-vector]
+           (mapv (fn nested-normalize-prob-dist-anon [hj row-sum] (float (/ hj row-sum)))
                 hj-vector
                 row-sums))
          unnormalized-prob-distribution)))
@@ -67,11 +67,11 @@
   "Selects all parents for the generation. This is done here instead of one
    parent at a time, because simple/sample is much faster that way."
   [individuals probability-distribution number-parents]
-  (take number-parents
+  (vec(take number-parents
         (map #(nth individuals %)
              (simple/sample (range (count individuals))
                             :weigh (fn [indi] (nth probability-distribution indi))
-                            :replace true))))
+                            :replace true)))))
 
 (defn make-plexicase-selection
   "Calculates the selection probabilities for every individual in the population.
@@ -118,7 +118,7 @@
 
 (defn -main
   [pop & args]
-  (make-plexicase-selection (merge {:individuals pop :num-cases 5}
+  #_(make-plexicase-selection (merge {:individuals pop :num-cases 5}
                                    (apply hash-map args))))
 
 
