@@ -37,20 +37,18 @@
              ;;   1. Select 2 parents with tournament selection.
              ;;   2. Pass their genomes to uniform-crossover.
              ;;   3. Mutate the resulting genome by swapping the position of 2 genes.
-              :breed           (fn [{:keys [plexicase-parents index]}]
+              :breed           (fn 
+                                ;;  [{:keys [plexicase-parents index ]}]
+                                 [{:keys [individuals]}]
                                 ;; (->> (repeatedly 2 #(tournament individuals))
-                                ;;  (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
-                                 (->> 
-                                  ;; (repeatedly 2 #(plx/plexicase-select-parent-using-index
-                                  ;;                     {:plexicase-parents plexicase-parents
-                                  ;;                      :index index
-                                  ;;                      }))
-                                       (vector (plx/plexicase-select-parent-using-index
-                                                {:plexicase-parents plexicase-parents
-                                                 :index (* 2 index)})
-                                               (plx/plexicase-select-parent-using-index
-                                                {:plexicase-parents plexicase-parents
-                                                 :index (inc(* 2 index))}))
+                                 (->> (repeatedly 2 #(lexicase-selection individuals {:context "Hello"}))
+                                ;;  (->> 
+                                ;;        (vector (plx/plexicase-select-parent-using-index
+                                ;;                 {:plexicase-parents plexicase-parents
+                                ;;                  :index (* 2 index)})
+                                ;;                (plx/plexicase-select-parent-using-index
+                                ;;                 {:plexicase-parents plexicase-parents
+                                ;;                  :index (inc(* 2 index))}))
                                       (mapv :genome)
                                       tb/uniform-crossover
                                       tb/swap-2-genes))
