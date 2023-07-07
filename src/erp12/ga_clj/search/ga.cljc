@@ -113,7 +113,7 @@
                 ;; Time next-generation function
                 start (. System (nanoTime))
                 next-state (next-generation state' opts)
-                ;; _ (pr-str next-state)
+                _ (pr-str next-state)
                 end (. System (nanoTime))
                 _ (log/info "PARENT SELECTING TIME " (str (/ (- end start) 1e6) "ms"))
                 ]
